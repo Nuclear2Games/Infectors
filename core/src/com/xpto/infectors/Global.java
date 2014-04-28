@@ -5,6 +5,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.xpto.infectors.engine.Team;
 import com.xpto.infectors.screens.MainMenu;
 
 public class Global extends Game {
@@ -63,6 +64,16 @@ public class Global extends Game {
         }
 
         bgStart = System.currentTimeMillis();
+    }
+
+    private Team userTeam;
+
+    public Team getUserTeam() {
+        return userTeam;
+    }
+
+    public void setUserTeam(Team _userTeam) {
+        userTeam = _userTeam;
     }
 
     @Override
@@ -128,4 +139,5 @@ public class Global extends Game {
         super.render();
         batch.end();
     }
+
 }

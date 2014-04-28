@@ -1,5 +1,22 @@
 package com.xpto.infectors.engine;
 
-public class Attack {
+public class Attack extends Circle {
+    private static final long serialVersionUID = 3L;
+    
+    public static final float DEFAULT_RADIUS = 15;
 
+    private Cell target;
+
+    public Cell getTarget() {
+        return target;
+    }
+
+    public void setTarget(Cell _target) {
+        target = _target;
+    }
+
+    public Attack() {
+        super();
+        setRadius(DEFAULT_RADIUS);
+    }
 }

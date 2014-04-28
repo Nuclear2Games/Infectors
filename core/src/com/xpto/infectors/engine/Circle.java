@@ -2,7 +2,9 @@ package com.xpto.infectors.engine;
 
 import com.badlogic.gdx.math.Vector2;
 
-public abstract class Circle {
+public abstract class Circle extends com.badlogic.gdx.math.Circle {
+    private static final long serialVersionUID = 1L;
+
     private Vector2 position;
 
     public Vector2 getPosition() {
@@ -42,18 +44,51 @@ public abstract class Circle {
             this.radius = radius;
     }
 
+    private Team team;
+
+    public Team getTeam() {
+        return team;
+    }
+
+    public void setTeam(Team team) {
+        this.team = team;
+    }
+
+    private float energy;
+
+    public float getEnergy() {
+        return energy;
+    }
+
+    public void setEnergy(float energy) {
+        this.energy = energy;
+    }
+
     public Circle() {
         position = Vector2.Zero;
         radius = 0;
     }
 
-    public static Vector2 direction(Circle _circle1, Circle _circle2) {
-        _circle1.position.crs(v)
-        
-        float d = distance(_circle1, _circle2);
-        return d <= ((_circle1.radius + _circle2.radius) * 1.1f);
+    public Vector2 direction(Circle _circle2) {
+        return direction(this, _circle2);
     }
-    
+
+    public boolean isNear(Circle _circle2) {
+        return isNear(this, _circle2);
+    }
+
+    public boolean isColliding(Circle _circle2) {
+        return isColliding(this, _circle2);
+    }
+
+    public float distance(Circle _circle2) {
+        return distance(this, _circle2);
+    }
+
+    public static Vector2 direction(Circle _circle1, Circle _circle2) {
+        return _circle1.position.lerp(_circle2.position, 1).nor();
+    }
+
     public static boolean isNear(Circle _circle1, Circle _circle2) {
         float d = distance(_circle1, _circle2);
         return d <= ((_circle1.radius + _circle2.radius) * 1.1f);
