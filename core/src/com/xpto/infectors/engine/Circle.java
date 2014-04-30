@@ -2,9 +2,7 @@ package com.xpto.infectors.engine;
 
 import com.badlogic.gdx.math.Vector2;
 
-public abstract class Circle extends com.badlogic.gdx.math.Circle {
-    private static final long serialVersionUID = 1L;
-
+public abstract class Circle {
     private Vector2 position;
 
     public Vector2 getPosition() {
@@ -47,6 +45,8 @@ public abstract class Circle extends com.badlogic.gdx.math.Circle {
     private Team team;
 
     public Team getTeam() {
+        if (team == null)
+            team = new Team.Gray();
         return team;
     }
 
@@ -83,6 +83,28 @@ public abstract class Circle extends com.badlogic.gdx.math.Circle {
 
     public float distance(Circle _circle2) {
         return distance(this, _circle2);
+    }
+
+    public boolean contains(float x, float y) {
+        x = position.x - x;
+        y = position.y - y;
+        return x * x + y * y <= radius * radius;
+    }
+
+    public boolean contains(Vector2 point) {
+        float dx = position.x - point.x;
+        float dy = position.y - point.y;
+        return dx * dx + dy * dy <= radius * radius;
+    }
+
+    public boolean contains(Circle c) {
+        float dx = position.x - c.position.x;
+        float dy = position.y - c.position.y;
+        // The distance to the furthest point on circle c is the distance
+        // between the center of the two circles plus the radius.
+        // We use the squared distance so we can avoid a sqrt.
+        float maxDistanceSqrd = dx * dx + dy * dy + c.radius * c.radius;
+        return maxDistanceSqrd <= radius * radius;
     }
 
     public static Vector2 direction(Circle _circle1, Circle _circle2) {

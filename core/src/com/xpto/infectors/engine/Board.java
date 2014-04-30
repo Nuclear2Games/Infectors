@@ -3,9 +3,13 @@ package com.xpto.infectors.engine;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.Random;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.math.Circle;
 import com.badlogic.gdx.math.Vector2;
 import com.xpto.infectors.Global;
 
@@ -20,10 +24,12 @@ public class Board extends ScreenAdapter {
 
     private static Cell getCellFromPool(Team _team, Vector2 _position, float _radius, float _energy) {
         Cell c = poolCells.poll();
-        if (c == null)
-            c = new Cell();
 
-        c.setTeam(_team);
+        if (c == null)
+            c = new Cell(_team);
+        else
+            c.setTeam(_team);
+
         c.setPosition(_position);
         c.setRadius(_radius);
         c.setEnergy(_energy);
@@ -48,13 +54,40 @@ public class Board extends ScreenAdapter {
         return a;
     }
 
+    private Texture img;
+
     public Board(Global _game) {
         game = _game;
 
-        game.setBackground(1, 0, 0, 1);
+        game.setBackground(0, 0, 0, 1);
 
         cells = new ArrayList<Cell>();
         attacks = new ArrayList<Attack>();
+
+        // Assets
+        img = new Texture("circle.png");
+
+        // Load scenario
+        for (int i = 0; i < 5; i++) {
+            float rad = new Random().nextFloat() * (Cell.MAX_RADIUS - Cell.MIN_RADIUS) + Cell.MIN_RADIUS;
+
+            // Rnd teams
+            Team t = null;
+            switch (i) {
+            case 0:
+                t = new Team.Blue();
+                break;
+            case 1:
+                t = new Team.Red();
+                break;
+            case 2:
+                t = new Team.Green();
+                break;
+            }
+
+            cells.add(getCellFromPool(t, new Vector2(new Random().nextFloat() * Global.WIDTH, new Random().nextFloat()
+                    * Global.HEIGHT), rad, new Random().nextFloat() * rad));
+        }
     }
 
     @Override
@@ -66,12 +99,19 @@ public class Board extends ScreenAdapter {
     }
 
     private void draw() {
+        Color color = game.batch().getColor();
+
         // Cells
         for (int i = 0; i < cells.size(); i++) {
-Cell c = cells.get(i);
+            Cell c = cells.get(i);
+            Team t = c.getTeam();
 
-
+            game.batch().setColor(t.getR(), t.getG(), t.getB(), t.getA());
+            game.batch().draw(img, c.getX() - c.getRadius(), c.getY() - c.getRadius(), c.getRadius() * 2,
+                    c.getRadius() * 2);
         }
+
+        game.batch().setColor(color.r, color.g, color.b, color.a);
     }
 
     private void update() {

@@ -9,6 +9,9 @@ import com.xpto.infectors.engine.Team;
 import com.xpto.infectors.screens.MainMenu;
 
 public class Global extends Game {
+    public static final int WIDTH = 800;
+    public static final int HEIGHT = 480;
+
     private OrthographicCamera camera;
     private SpriteBatch batch;
 
@@ -79,7 +82,7 @@ public class Global extends Game {
     @Override
     public void create() {
         camera = new OrthographicCamera();
-        camera.setToOrtho(false, 800, 480);
+        camera.setToOrtho(false, WIDTH, HEIGHT);
 
         batch = new SpriteBatch();
 
