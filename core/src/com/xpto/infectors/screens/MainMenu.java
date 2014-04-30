@@ -13,8 +13,8 @@ public class MainMenu extends ScreenAdapter {
 
     public MainMenu(Global _game) {
         game = _game;
-        game.setBackground(0, 1, 0, 1);
-        game.setBackground(1, 0, 0, 1, 3000);
+        game.setBackground(0, 0.1f, 0, 1);
+        game.setBackground(0, 0, 0, 1, 3000);
 
         font = new BitmapFont();
         font.setColor(1, 1, 1, 1);

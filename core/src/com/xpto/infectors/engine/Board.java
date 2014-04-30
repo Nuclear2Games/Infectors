@@ -68,8 +68,9 @@ public class Board extends ScreenAdapter {
         img = new Texture("circle.png");
 
         // Load scenario
-        for (int i = 0; i < 5; i++) {
-            float rad = new Random().nextFloat() * (Cell.MAX_RADIUS - Cell.MIN_RADIUS) + Cell.MIN_RADIUS;
+        Random r = new Random();
+        for (int i = 0; i < 10; i++) {
+            float rad = r.nextFloat() * (Cell.MAX_RADIUS - Cell.MIN_RADIUS) + Cell.MIN_RADIUS;
 
             // Rnd teams
             Team t = null;
@@ -85,8 +86,8 @@ public class Board extends ScreenAdapter {
                 break;
             }
 
-            cells.add(getCellFromPool(t, new Vector2(new Random().nextFloat() * Global.WIDTH, new Random().nextFloat()
-                    * Global.HEIGHT), rad, new Random().nextFloat() * rad));
+            cells.add(getCellFromPool(t, new Vector2(r.nextFloat() * Global.WIDTH, r.nextFloat() * Global.HEIGHT), rad,
+                    r.nextFloat() * rad));
         }
     }
 
@@ -130,6 +131,8 @@ public class Board extends ScreenAdapter {
                     if (c1.getX() > c2.getX()) {
                         cells.remove(j);
                         cells.add(i, c2);
+
+                        c1 = c2;
                     }
                 }
             }
@@ -146,8 +149,8 @@ public class Board extends ScreenAdapter {
                 if (i != j) {
                     Cell c2 = cells.get(j);
 
-                    if (!cellCollisionTest(c1, c2))
-                        break;
+                    cellCollisionTest(c1, c2);
+                    // if (!cellCollisionTest(c1, c2)) break;
                 }
         }
 
@@ -189,15 +192,19 @@ public class Board extends ScreenAdapter {
             cellsSort = true;
 
             Vector2 move = c2.direction(c1);
+            
+            float factor = 2 - (c1.getRadius() / (c1.getRadius() + c2.getRadius())) * 2;
+            Vector2 m1 = new Vector2(move.x * factor, move.y * factor);
+            Vector2 m2 = new Vector2(move.x * (2 - factor), move.y * (2 - factor));
 
             // Move 1 nor direction if is near
-            c1.setPosition(c1.getPosition().add(move));
-            c2.setPosition(c2.getPosition().sub(move));
+            c1.setPosition(c1.getPosition().add(m1));
+            c2.setPosition(c2.getPosition().sub(m2));
 
             if (c1.isColliding(c2)) {
                 // Move +2x in collisions
-                c1.setPosition(c1.getPosition().add(move).add(move));
-                c2.setPosition(c2.getPosition().sub(move).sub(move));
+                c1.setPosition(c1.getPosition().add(m1).add(m1));
+                c2.setPosition(c2.getPosition().sub(m2).sub(m2));
             }
         } else if (Math.abs(c1.getX() - c2.getX()) > (c1.getRadius() + Cell.MAX_RADIUS) * 1.1f)
             return false;

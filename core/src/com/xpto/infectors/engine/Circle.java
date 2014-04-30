@@ -108,7 +108,9 @@ public abstract class Circle {
     }
 
     public static Vector2 direction(Circle _circle1, Circle _circle2) {
-        return _circle1.position.lerp(_circle2.position, 1).nor();
+        Vector2 v1 = new Vector2(_circle1.position);
+        Vector2 v2 = new Vector2(_circle2.position);
+        return v1.lerp(v2, 1).nor();
     }
 
     public static boolean isNear(Circle _circle1, Circle _circle2) {
