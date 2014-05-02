@@ -4,6 +4,20 @@ import com.badlogic.gdx.math.Vector2;
 
 public abstract class Circle {
     private Vector2 position;
+    private Vector2 toMove;
+
+    public void addMovment(Vector2 _newMove) {
+        toMove.add(_newMove);
+    }
+
+    public void subMovment(Vector2 _newMove) {
+        toMove.sub(_newMove);
+    }
+
+    public void move() {
+        position.add(toMove);
+        toMove.sub(toMove);
+    }
 
     public Vector2 getPosition() {
         return position;
@@ -65,7 +79,8 @@ public abstract class Circle {
     }
 
     public Circle() {
-        position = Vector2.Zero;
+        position = new Vector2();
+        toMove = new Vector2();
         radius = 0;
     }
 
@@ -110,6 +125,7 @@ public abstract class Circle {
     public static Vector2 direction(Circle _circle1, Circle _circle2) {
         Vector2 v1 = new Vector2(_circle1.position);
         Vector2 v2 = new Vector2(_circle2.position);
+
         return v1.lerp(v2, 1).nor();
     }
 

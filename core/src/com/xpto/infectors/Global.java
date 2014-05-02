@@ -9,138 +9,145 @@ import com.xpto.infectors.engine.Team;
 import com.xpto.infectors.screens.MainMenu;
 
 public class Global extends Game {
-    public static final int WIDTH = 800;
-    public static final int HEIGHT = 480;
+	public static final int WIDTH = 800;
+	public static final int HEIGHT = 480;
 
-    private OrthographicCamera camera;
-    private SpriteBatch batch;
+	private OrthographicCamera camera;
 
-    public SpriteBatch batch() {
-        return batch;
-    }
+	public OrthographicCamera camera() {
+		return camera;
+	}
 
-    private long bgStart;
-    private long bgDuration;
+	private SpriteBatch batch;
 
-    // Current color
-    private float r;
-    private float g;
-    private float b;
-    private float a;
+	public SpriteBatch batch() {
+		return batch;
+	}
 
-    // Initial color
-    private float r_0;
-    private float g_0;
-    private float b_0;
-    private float a_0;
+	private long bgStart;
+	private long bgDuration;
 
-    // Target color
-    private float r_1;
-    private float g_1;
-    private float b_1;
-    private float a_1;
+	// Current color
+	private float r;
+	private float g;
+	private float b;
+	private float a;
 
-    public void setBackground(float _red, float _green, float _blue, float _alpha) {
-        setBackground(_red, _green, _blue, _alpha, 0);
-    }
+	// Initial color
+	private float r_0;
+	private float g_0;
+	private float b_0;
+	private float a_0;
 
-    public void setBackground(float _red, float _green, float _blue, float _alpha, long _duration) {
-        if (_duration <= 0) {
-            r_1 = r_0 = r = _red;
-            g_1 = g_0 = g = _green;
-            b_1 = b_0 = b = _blue;
-            a_1 = a_0 = a = _alpha;
+	// Target color
+	private float r_1;
+	private float g_1;
+	private float b_1;
+	private float a_1;
 
-            bgDuration = 0;
-        } else {
-            r_0 = r;
-            g_0 = g;
-            b_0 = b;
-            a_0 = a;
+	public void setBackground(float _red, float _green, float _blue,
+			float _alpha) {
+		setBackground(_red, _green, _blue, _alpha, 0);
+	}
 
-            r_1 = _red;
-            g_1 = _green;
-            b_1 = _blue;
-            a_1 = _alpha;
+	public void setBackground(float _red, float _green, float _blue,
+			float _alpha, long _duration) {
+		if (_duration <= 0) {
+			r_1 = r_0 = r = _red;
+			g_1 = g_0 = g = _green;
+			b_1 = b_0 = b = _blue;
+			a_1 = a_0 = a = _alpha;
 
-            bgDuration = _duration;
-        }
+			bgDuration = 0;
+		} else {
+			r_0 = r;
+			g_0 = g;
+			b_0 = b;
+			a_0 = a;
 
-        bgStart = System.currentTimeMillis();
-    }
+			r_1 = _red;
+			g_1 = _green;
+			b_1 = _blue;
+			a_1 = _alpha;
 
-    private Team userTeam;
+			bgDuration = _duration;
+		}
 
-    public Team getUserTeam() {
-        return userTeam;
-    }
+		bgStart = System.currentTimeMillis();
+	}
 
-    public void setUserTeam(Team _userTeam) {
-        userTeam = _userTeam;
-    }
+	private Team userTeam;
 
-    @Override
-    public void create() {
-        camera = new OrthographicCamera();
-        camera.setToOrtho(false, WIDTH, HEIGHT);
+	public Team getUserTeam() {
+		return userTeam;
+	}
 
-        batch = new SpriteBatch();
+	public void setUserTeam(Team _userTeam) {
+		userTeam = _userTeam;
+	}
 
-        r_1 = r_0 = r = 0;
-        g_1 = g_0 = g = 0;
-        b_1 = b_0 = b = 0;
-        a_1 = a_0 = a = 1;
+	@Override
+	public void create() {
+		camera = new OrthographicCamera();
+		camera.setToOrtho(false, WIDTH, HEIGHT);
 
-        // Start with main menu
-        this.setScreen(new MainMenu(this));
-    }
+		batch = new SpriteBatch();
 
-    @Override
-    public void dispose() {
-        if (getScreen() != null)
-            getScreen().dispose();
+		r_1 = r_0 = r = 0;
+		g_1 = g_0 = g = 0;
+		b_1 = b_0 = b = 0;
+		a_1 = a_0 = a = 1;
 
-        batch.dispose();
+		// Start with main menu
+		this.setScreen(new MainMenu(this));
+	}
 
-        super.dispose();
-    }
+	@Override
+	public void dispose() {
+		if (getScreen() != null)
+			getScreen().dispose();
 
-    @Override
-    public void render() {
-        // Backgroud color transition
-        if (bgDuration > 0) {
-            long elapsed = System.currentTimeMillis() - bgStart;
+		batch.dispose();
 
-            if (elapsed >= bgDuration) {
-                bgDuration = 0;
+		super.dispose();
+	}
 
-                r = r_0 = r_1;
-                g = g_0 = g_1;
-                b = b_0 = b_1;
-                a = a_0 = a_1;
-            } else {
-                // Index of target color
-                float i1 = (float) elapsed / (float) bgDuration;
+	@Override
+	public void render() {
+		// Backgroud color transition
+		if (bgDuration > 0) {
+			long elapsed = System.currentTimeMillis() - bgStart;
 
-                // Index of initial color
-                float i0 = 1 - i1;
+			if (elapsed >= bgDuration) {
+				bgDuration = 0;
 
-                r = r_0 * i0 + r_1 * i1;
-                g = g_0 * i0 + g_1 * i1;
-                b = b_0 * i0 + b_1 * i1;
-                a = a_0 * i0 + a_1 * i1;
-            }
-        }
+				r = r_0 = r_1;
+				g = g_0 = g_1;
+				b = b_0 = b_1;
+				a = a_0 = a_1;
+			} else {
+				// Index of target color
+				float i1 = (float) elapsed / (float) bgDuration;
 
-        Gdx.gl.glClearColor(r, g, b, a);
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+				// Index of initial color
+				float i0 = 1 - i1;
 
-        camera.update();
-        batch.setProjectionMatrix(camera.combined);
+				r = r_0 * i0 + r_1 * i1;
+				g = g_0 * i0 + g_1 * i1;
+				b = b_0 * i0 + b_1 * i1;
+				a = a_0 * i0 + a_1 * i1;
+			}
+		}
 
-        batch.begin();
-        super.render();
-        batch.end();
-    }
+		Gdx.gl.glClearColor(r, g, b, a);
+		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
+		camera.update();
+		batch.setProjectionMatrix(camera.combined);
+
+		batch.begin();
+		super.render();
+		batch.end();
+	}
 
 }

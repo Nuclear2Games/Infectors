@@ -9,16 +9,21 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.math.Circle;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
 import com.xpto.infectors.Global;
 
 public class Board extends ScreenAdapter {
+    private static float collision = 2;
+
     private Global game;
 
     private boolean cellsSort = true;
     private ArrayList<Cell> cells;
+
     private Cell selected;
+    private Texture ring;
 
     private static Queue<Cell> poolCells = new LinkedList<Cell>();
 
@@ -54,8 +59,6 @@ public class Board extends ScreenAdapter {
         return a;
     }
 
-    private Texture img;
-
     public Board(Global _game) {
         game = _game;
 
@@ -65,12 +68,11 @@ public class Board extends ScreenAdapter {
         attacks = new ArrayList<Attack>();
 
         // Assets
-        img = new Texture("circle.png");
+        ring = new Texture("ring.png");
 
         // Load scenario
-        Random r = new Random();
-        for (int i = 0; i < 10; i++) {
-            float rad = r.nextFloat() * (Cell.MAX_RADIUS - Cell.MIN_RADIUS) + Cell.MIN_RADIUS;
+        for (int i = 0; i < 15; i++) {
+            float rad = new Random().nextFloat() * (Cell.MAX_RADIUS - Cell.MIN_RADIUS) + Cell.MIN_RADIUS;
 
             // Rnd teams
             Team t = null;
@@ -86,8 +88,8 @@ public class Board extends ScreenAdapter {
                 break;
             }
 
-            cells.add(getCellFromPool(t, new Vector2(r.nextFloat() * Global.WIDTH, r.nextFloat() * Global.HEIGHT), rad,
-                    r.nextFloat() * rad));
+            cells.add(getCellFromPool(t, new Vector2(new Random().nextFloat() * Global.WIDTH, new Random().nextFloat()
+                    * Global.HEIGHT), rad, new Random().nextFloat() * rad));
         }
     }
 
@@ -101,28 +103,32 @@ public class Board extends ScreenAdapter {
 
     private void draw() {
         Color color = game.batch().getColor();
+        SpriteBatch batch = game.batch();
 
         // Cells
-        for (int i = 0; i < cells.size(); i++) {
-            Cell c = cells.get(i);
-            Team t = c.getTeam();
+        for (int i = 0; i < cells.size(); i++)
+            cells.get(i).render(batch);
 
-            game.batch().setColor(t.getR(), t.getG(), t.getB(), t.getA());
-            game.batch().draw(img, c.getX() - c.getRadius(), c.getY() - c.getRadius(), c.getRadius() * 2,
-                    c.getRadius() * 2);
+        batch.setColor(color.r, color.g, color.b, color.a);
+
+        if (selected != null) {
+            float adjust = selected.getRadius() * 0.6f;
+            batch.draw(ring, selected.getX() - adjust - selected.getRadius(),
+                    selected.getY() - adjust - selected.getRadius(), 2 * (selected.getRadius() + adjust),
+                    2 * (selected.getRadius() + adjust));
         }
-
-        game.batch().setColor(color.r, color.g, color.b, color.a);
     }
 
     private void update() {
-        // Sort cells (using bubble)
+        // Sort cells
         // With this sort collisions of cells, may be fast tested
         if (cellsSort) {
             cellsSort = false;
 
             Cell c1;
             Cell c2;
+
+            // Bubble
             for (int i = 0; i < cells.size() - 1; i++) {
                 c1 = cells.get(i);
                 for (int j = i + 1; j < cells.size(); j++) {
@@ -131,28 +137,29 @@ public class Board extends ScreenAdapter {
                     if (c1.getX() > c2.getX()) {
                         cells.remove(j);
                         cells.add(i, c2);
-
-                        c1 = c2;
                     }
                 }
             }
         }
 
         // Test cell collisions
-        // Note that here there is a problem
-        // :: middle cells collides more than others
-        // TODO: distribute collisions equally
-        for (int i = 0; i < cells.size(); i++) {
-            Cell c1 = cells.get(i);
+        for (int x1 = 0; x1 < cells.size(); x1++) {
+            Cell c1 = cells.get(x1);
 
-            for (int j = 0; j < cells.size(); j++)
-                if (i != j) {
-                    Cell c2 = cells.get(j);
+            // Back
+            for (int x2 = x1 - 1; x2 > 0; x2--)
+                if (!cellCollisionTest(c1, cells.get(x2)))
+                    break;
 
-                    cellCollisionTest(c1, c2);
-                    // if (!cellCollisionTest(c1, c2)) break;
-                }
+            // Front
+            for (int x2 = x1 + 1; x2 < cells.size(); x2++)
+                if (!cellCollisionTest(c1, cells.get(x2)))
+                    break;
         }
+
+        // Make the cells move
+        for (int x1 = 0; x1 < cells.size(); x1++)
+            cells.get(x1).move();
 
         // Test cell X attack collisions
         // Note that here there is a problem
@@ -170,43 +177,54 @@ public class Board extends ScreenAdapter {
 
         // User interactions
         if (Gdx.input.isTouched()) {
-            int tX = Gdx.input.getX();
-            int tY = Gdx.input.getY();
+            Vector3 touch = new Vector3();
+            touch.x = Gdx.input.getX();
+            touch.y = Gdx.input.getY();
+            game.camera().unproject(touch);
 
-            if (selected == null) {
-                // Select cell
-                for (int i = 0; i < cells.size(); i++) {
-                    Cell c = cells.get(i);
-                    if (c.getTeam() == game.getUserTeam() && c.contains(tX, tY)) {
-                        selected = cells.get(i);
-                        break;
-                    }
+            // if (selected == null) {
+            // Select cell
+            for (int i = 0; i < cells.size(); i++) {
+                Cell c = cells.get(i);
+                if (c.contains(touch.x, touch.y)) {
+                    selected = cells.get(i);
+                    break;
                 }
             }
+            // }
         }
     }
 
+    /**
+     * Test collision and make cells move each other to make the collision stops Returns true when the cells are too far
+     * to make any collision (based on x) and false otherwise
+     */
     private boolean cellCollisionTest(Cell c1, Cell c2) {
         if (c1.isNear(c2)) {
             // Set to reorder in next update
             cellsSort = true;
 
-            Vector2 move = c2.direction(c1);
-            
-            float factor = 2 - (c1.getRadius() / (c1.getRadius() + c2.getRadius())) * 2;
-            Vector2 m1 = new Vector2(move.x * factor, move.y * factor);
-            Vector2 m2 = new Vector2(move.x * (2 - factor), move.y * (2 - factor));
+            // Set height
+            float h = (c1.getRadius() / (c1.getRadius() + c2.getRadius())) * collision;
+
+            // TODO: Correct direction calc
+            Vector2 m = c2.direction(c1);
+            Vector2 m1 = new Vector2(m.x * h, m.y * h);
+            Vector2 m2 = new Vector2(m.x * (collision - h), m.y * (collision - h));
 
             // Move 1 nor direction if is near
-            c1.setPosition(c1.getPosition().add(m1));
-            c2.setPosition(c2.getPosition().sub(m2));
+            c1.addMovment(m1);
+            c2.subMovment(m2);
 
             if (c1.isColliding(c2)) {
                 // Move +2x in collisions
-                c1.setPosition(c1.getPosition().add(m1).add(m1));
-                c2.setPosition(c2.getPosition().sub(m2).sub(m2));
+                c1.addMovment(m1);
+                c1.addMovment(m1);
+                c2.subMovment(m2);
+                c2.subMovment(m2);
             }
         } else if (Math.abs(c1.getX() - c2.getX()) > (c1.getRadius() + Cell.MAX_RADIUS) * 1.1f)
+            // Too far
             return false;
         return true;
     }
