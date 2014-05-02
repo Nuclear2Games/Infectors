@@ -14,11 +14,6 @@ public abstract class Circle {
         toMove.sub(_newMove);
     }
 
-    public void move() {
-        position.add(toMove);
-        toMove.sub(toMove);
-    }
-
     public Vector2 getPosition() {
         return position;
     }
@@ -31,8 +26,8 @@ public abstract class Circle {
         return position.y;
     }
 
-    public void setPosition(Vector2 position) {
-        this.position = position;
+    public void setPosition(Vector2 _position) {
+        position = _position;
     }
 
     public void setX(float _x) {
@@ -49,11 +44,30 @@ public abstract class Circle {
         return radius;
     }
 
-    public void setRadius(float radius) {
-        if (radius < 0)
-            this.radius = 0;
-        else
-            this.radius = radius;
+    public void setRadius(float _radius) {
+        if (_radius < 0) {
+            radius = 0;
+            area = 0;
+        } else {
+            radius = _radius;
+            area = (float) (Math.PI * radius * radius);
+        }
+    }
+
+    private float area;
+
+    public float getArea() {
+        return area;
+    }
+
+    public void setArea(float _area) {
+        if (_area < 0) {
+            area = 0;
+            radius = 0;
+        } else {
+            area = _area;
+            radius = (float) Math.sqrt(area / Math.PI);
+        }
     }
 
     private Team team;
@@ -64,8 +78,8 @@ public abstract class Circle {
         return team;
     }
 
-    public void setTeam(Team team) {
-        this.team = team;
+    public void setTeam(Team _team) {
+        team = _team;
     }
 
     private float energy;
@@ -74,8 +88,8 @@ public abstract class Circle {
         return energy;
     }
 
-    public void setEnergy(float energy) {
-        this.energy = energy;
+    public void setEnergy(float _energy) {
+        energy = _energy;
     }
 
     public Circle() {
@@ -122,11 +136,28 @@ public abstract class Circle {
         return maxDistanceSqrd <= radius * radius;
     }
 
-    public static Vector2 direction(Circle _circle1, Circle _circle2) {
-        Vector2 v1 = new Vector2(_circle1.position);
-        Vector2 v2 = new Vector2(_circle2.position);
+    public void update() {
+        position.add(toMove);
 
-        return v1.lerp(v2, 1).nor();
+        toMove.x /= 2f;
+        if (Math.abs(toMove.x) < 0.05f)
+            toMove.x = 0;
+
+        toMove.y /= 2f;
+        if (Math.abs(toMove.y) < 0.05f)
+            toMove.y = 0;
+    }
+
+    public static Vector2 direction(Circle _circle1, Circle _circle2) {
+        // Direction
+        Vector2 vD = new Vector2(_circle2.position.x - _circle1.position.x, _circle2.position.y - _circle1.position.y);
+
+        // Normalize (1)
+        float l = Math.abs(vD.x) + Math.abs(vD.y);
+        vD.x = vD.x / l;
+        vD.y = vD.y / l;
+
+        return vD;
     }
 
     public static boolean isNear(Circle _circle1, Circle _circle2) {

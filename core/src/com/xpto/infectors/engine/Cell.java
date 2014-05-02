@@ -9,6 +9,23 @@ public class Cell extends Circle {
 
     private static Texture img;
 
+    private float energy;
+    private float energyRadius;
+
+    public float getEnergy() {
+        return energy;
+    }
+
+    public void setEnergy(float _energy) {
+        if (_energy < 0) {
+            energy = 0;
+            energyRadius = 0;
+        } else {
+            energy = _energy;
+            energyRadius = (float) Math.sqrt(energy / Math.PI);
+        }
+    }
+
     public Cell(Team _team) {
         super();
 
@@ -21,8 +38,17 @@ public class Cell extends Circle {
     public void render(SpriteBatch batch) {
         Team t = getTeam();
         float r2 = getRadius() * 2;
+        float er2 = energyRadius * 2;
 
         batch.setColor(t.getR(), t.getG(), t.getB(), t.getA());
         batch.draw(img, getX() - getRadius(), getY() - getRadius(), r2, r2);
+        batch.draw(img, getX() - energyRadius, getY() - energyRadius, er2, er2);
+    }
+
+    @Override
+    public void update() {
+        super.update();
+
+        energy += (getRadius() / MAX_RADIUS) * getTeam().getRegenerate();
     }
 }

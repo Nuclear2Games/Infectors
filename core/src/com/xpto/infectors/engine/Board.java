@@ -15,7 +15,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.xpto.infectors.Global;
 
 public class Board extends ScreenAdapter {
-    private static float collision = 2;
+    private static float collision = 0.5f;
 
     private Global game;
 
@@ -159,7 +159,7 @@ public class Board extends ScreenAdapter {
 
         // Make the cells move
         for (int x1 = 0; x1 < cells.size(); x1++)
-            cells.get(x1).move();
+            cells.get(x1).update();
 
         // Test cell X attack collisions
         // Note that here there is a problem
@@ -212,17 +212,16 @@ public class Board extends ScreenAdapter {
             Vector2 m1 = new Vector2(m.x * h, m.y * h);
             Vector2 m2 = new Vector2(m.x * (collision - h), m.y * (collision - h));
 
-            // Move 1 nor direction if is near
+            if (c1.isColliding(c2)) {
+                // Move 3x when collision
+                m1.x *= 3;
+                m1.y *= 3;
+                m2.x *= 3;
+                m2.y *= 3;
+            }
+
             c1.addMovment(m1);
             c2.subMovment(m2);
-
-            if (c1.isColliding(c2)) {
-                // Move +2x in collisions
-                c1.addMovment(m1);
-                c1.addMovment(m1);
-                c2.subMovment(m2);
-                c2.subMovment(m2);
-            }
         } else if (Math.abs(c1.getX() - c2.getX()) > (c1.getRadius() + Cell.MAX_RADIUS) * 1.1f)
             // Too far
             return false;

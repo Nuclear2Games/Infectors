@@ -19,11 +19,46 @@ public abstract class Team {
         return getColor().b;
     }
 
+    public Team(float re, float ar, float da, float sp) {
+        regenerate = re;
+        armor = ar;
+        damage = da;
+        speedy = sp;
+    }
+
     public abstract Color getColor();
 
     public abstract int getId();
 
+    private float regenerate;
+
+    public float getRegenerate() {
+        return regenerate;
+    }
+
+    private float armor;
+
+    public float getArmor() {
+        return armor;
+    }
+
+    private float damage;
+
+    public float getDamage() {
+        return damage;
+    }
+
+    private float speedy;
+
+    public float getSpeedy() {
+        return speedy;
+    }
+
     public static class Gray extends Team {
+        public Gray() {
+            super(1, 1, 1, 1);
+        }
+
         @Override
         public Color getColor() {
             return Color.GRAY;
@@ -36,6 +71,10 @@ public abstract class Team {
     }
 
     public static class Blue extends Team {
+        public Blue() {
+            super(1, 1, 1, 1);
+        }
+
         @Override
         public Color getColor() {
             return Color.BLUE;
@@ -48,6 +87,10 @@ public abstract class Team {
     }
 
     public static class Red extends Team {
+        public Red() {
+            super(1, 1, 1, 1);
+        }
+
         @Override
         public Color getColor() {
             return Color.RED;
@@ -60,6 +103,10 @@ public abstract class Team {
     }
 
     public static class Green extends Team {
+        public Green() {
+            super(1, 1, 1, 1);
+        }
+
         @Override
         public Color getColor() {
             return Color.GREEN;
