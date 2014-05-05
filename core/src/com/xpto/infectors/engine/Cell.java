@@ -46,9 +46,10 @@ public class Cell extends Circle {
     }
 
     @Override
-    public void update() {
-        super.update();
+    public void update(float seconds) {
+        super.update(seconds);
 
-        energy += (getRadius() / MAX_RADIUS) * getTeam().getRegenerate();
+        energy += (getRadius() / MAX_RADIUS) * getTeam().getRegenerate() * seconds;
+        energyRadius = (float) Math.sqrt(energy / Math.PI);
     }
 }

@@ -136,7 +136,7 @@ public abstract class Circle {
         return maxDistanceSqrd <= radius * radius;
     }
 
-    public void update() {
+    public void update(float seconds) {
         position.add(toMove);
 
         toMove.x /= 2f;

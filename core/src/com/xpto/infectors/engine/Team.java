@@ -56,7 +56,7 @@ public abstract class Team {
 
     public static class Gray extends Team {
         public Gray() {
-            super(1, 1, 1, 1);
+            super(100, 100, 100, 100);
         }
 
         @Override
@@ -72,7 +72,7 @@ public abstract class Team {
 
     public static class Blue extends Team {
         public Blue() {
-            super(1, 1, 1, 1);
+            super(100, 100, 100, 100);
         }
 
         @Override
@@ -88,7 +88,7 @@ public abstract class Team {
 
     public static class Red extends Team {
         public Red() {
-            super(1, 1, 1, 1);
+            super(100, 100, 100, 100);
         }
 
         @Override
@@ -104,7 +104,7 @@ public abstract class Team {
 
     public static class Green extends Team {
         public Green() {
-            super(1, 1, 1, 1);
+            super(100, 100, 100, 100);
         }
 
         @Override

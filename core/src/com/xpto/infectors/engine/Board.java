@@ -9,13 +9,15 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.BitmapFont.TextBounds;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.xpto.infectors.Global;
 
 public class Board extends ScreenAdapter {
-    private static float collision = 0.5f;
+    private static float collision = 10f;
 
     private Global game;
 
@@ -24,6 +26,7 @@ public class Board extends ScreenAdapter {
 
     private Cell selected;
     private Texture ring;
+    private BitmapFont font;
 
     private static Queue<Cell> poolCells = new LinkedList<Cell>();
 
@@ -69,6 +72,9 @@ public class Board extends ScreenAdapter {
 
         // Assets
         ring = new Texture("ring.png");
+
+        font = new BitmapFont();
+        font.setColor(1, 1, 1, 1);
 
         // Load scenario
         for (int i = 0; i < 15; i++) {
@@ -116,10 +122,24 @@ public class Board extends ScreenAdapter {
             batch.draw(ring, selected.getX() - adjust - selected.getRadius(),
                     selected.getY() - adjust - selected.getRadius(), 2 * (selected.getRadius() + adjust),
                     2 * (selected.getRadius() + adjust));
+
+            String v1 = (int) (selected.getEnergy() / 10) + " / " + (int) (selected.getArea() / 10);
+            TextBounds tb = font.getBounds(v1);
+            font.draw(game.batch(), v1, selected.getX() - tb.width / 2, selected.getY() + tb.height / 2);
         }
     }
 
+    private long lastUpdate;
+
     private void update() {
+        float seconds = 0;
+        if (lastUpdate == 0)
+            lastUpdate = System.currentTimeMillis();
+        else {
+            seconds = (System.currentTimeMillis() - lastUpdate) / 1000f;
+            lastUpdate = System.currentTimeMillis();
+        }
+
         // Sort cells
         // With this sort collisions of cells, may be fast tested
         if (cellsSort) {
@@ -148,18 +168,18 @@ public class Board extends ScreenAdapter {
 
             // Back
             for (int x2 = x1 - 1; x2 > 0; x2--)
-                if (!cellCollisionTest(c1, cells.get(x2)))
+                if (!cellCollisionTest(c1, cells.get(x2), seconds))
                     break;
 
             // Front
             for (int x2 = x1 + 1; x2 < cells.size(); x2++)
-                if (!cellCollisionTest(c1, cells.get(x2)))
+                if (!cellCollisionTest(c1, cells.get(x2), seconds))
                     break;
         }
 
         // Make the cells move
         for (int x1 = 0; x1 < cells.size(); x1++)
-            cells.get(x1).update();
+            cells.get(x1).update(seconds);
 
         // Test cell X attack collisions
         // Note that here there is a problem
@@ -171,7 +191,7 @@ public class Board extends ScreenAdapter {
             for (int j = 0; j < attacks.size(); j++) {
                 Attack a = attacks.get(j);
 
-                cellCollisionTest(c, a);
+                cellCollisionTest(c, a, seconds);
             }
         }
 
@@ -199,7 +219,7 @@ public class Board extends ScreenAdapter {
      * Test collision and make cells move each other to make the collision stops Returns true when the cells are too far
      * to make any collision (based on x) and false otherwise
      */
-    private boolean cellCollisionTest(Cell c1, Cell c2) {
+    private boolean cellCollisionTest(Cell c1, Cell c2, float seconds) {
         if (c1.isNear(c2)) {
             // Set to reorder in next update
             cellsSort = true;
@@ -209,8 +229,8 @@ public class Board extends ScreenAdapter {
 
             // TODO: Correct direction calc
             Vector2 m = c2.direction(c1);
-            Vector2 m1 = new Vector2(m.x * h, m.y * h);
-            Vector2 m2 = new Vector2(m.x * (collision - h), m.y * (collision - h));
+            Vector2 m1 = new Vector2(m.x * h * seconds, m.y * h * seconds);
+            Vector2 m2 = new Vector2(m.x * (collision - h) * seconds, m.y * (collision - h) * seconds);
 
             if (c1.isColliding(c2)) {
                 // Move 3x when collision
@@ -228,7 +248,7 @@ public class Board extends ScreenAdapter {
         return true;
     }
 
-    private boolean cellCollisionTest(Cell c, Attack a) {
+    private boolean cellCollisionTest(Cell c, Attack a, float seconds) {
         if (c.getTeam() != a.getTeam() && c.isColliding(a)) {
             float en = c.getEnergy() - a.getEnergy();
             if (en < 0) {
