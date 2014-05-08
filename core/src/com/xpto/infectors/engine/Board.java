@@ -18,6 +18,7 @@ import com.xpto.infectors.Global;
 
 public class Board extends ScreenAdapter {
     private static float collision = 10f;
+    private static float movement = 10f;
 
     private Global game;
 
@@ -27,6 +28,12 @@ public class Board extends ScreenAdapter {
     private Cell selected;
     private Texture ring;
     private BitmapFont font;
+
+    private Vector2 cameraPosition;
+
+    public Vector2 cameraPosition() {
+        return cameraPosition;
+    }
 
     private static Queue<Cell> poolCells = new LinkedList<Cell>();
 
@@ -77,6 +84,8 @@ public class Board extends ScreenAdapter {
         font.setColor(1, 1, 1, 1);
 
         // Load scenario
+        cameraPosition = new Vector2();
+
         for (int i = 0; i < 15; i++) {
             float rad = new Random().nextFloat() * (Cell.MAX_RADIUS - Cell.MIN_RADIUS) + Cell.MIN_RADIUS;
 
@@ -103,30 +112,9 @@ public class Board extends ScreenAdapter {
     public void render(float delta) {
         super.render(delta);
 
-        draw();
         update();
-    }
 
-    private void draw() {
-        Color color = game.batch().getColor();
-        SpriteBatch batch = game.batch();
-
-        // Cells
-        for (int i = 0; i < cells.size(); i++)
-            cells.get(i).render(batch);
-
-        batch.setColor(color.r, color.g, color.b, color.a);
-
-        if (selected != null) {
-            float adjust = selected.getRadius() * 0.6f;
-            batch.draw(ring, selected.getX() - adjust - selected.getRadius(),
-                    selected.getY() - adjust - selected.getRadius(), 2 * (selected.getRadius() + adjust),
-                    2 * (selected.getRadius() + adjust));
-
-            String v1 = (int) (selected.getEnergy() / 10) + " / " + (int) (selected.getArea() / 10);
-            TextBounds tb = font.getBounds(v1);
-            font.draw(game.batch(), v1, selected.getX() - tb.width / 2, selected.getY() + tb.height / 2);
-        }
+        draw();
     }
 
     private long lastUpdate;
@@ -196,22 +184,85 @@ public class Board extends ScreenAdapter {
         }
 
         // User interactions
-        if (Gdx.input.isTouched()) {
-            Vector3 touch = new Vector3();
-            touch.x = Gdx.input.getX();
-            touch.y = Gdx.input.getY();
-            game.camera().unproject(touch);
+        if (!touch1) {
+            if (Gdx.input.isTouched(0)) {
+                Vector3 touch = new Vector3();
+                touch.x = Gdx.input.getX();
+                touch.y = Gdx.input.getY();
+                game.camera().unproject(touch);
 
-            // if (selected == null) {
-            // Select cell
-            for (int i = 0; i < cells.size(); i++) {
-                Cell c = cells.get(i);
-                if (c.contains(touch.x, touch.y)) {
-                    selected = cells.get(i);
-                    break;
+                touch1 = true;
+                touch1MaxDistance = 0;
+                touch1Start = new Vector2(touch.x, touch.y);
+                touch1Current = touch1Start;
+            }
+        } else {
+            if (Gdx.input.isTouched(0)) {
+                Vector3 touch = new Vector3();
+                touch.x = Gdx.input.getX();
+                touch.y = Gdx.input.getY();
+                game.camera().unproject(touch);
+
+                Vector2 last = new Vector2(touch1Current);
+
+                touch1 = true;
+                touch1Current = new Vector2(touch.x, touch.y);
+
+                float d = touch1Start.dst(touch1Current);
+                if (d > touch1MaxDistance)
+                    touch1MaxDistance = d;
+
+                if (touch1MaxDistance > movement) {
+                    cameraPosition.x += last.x - touch1Current.x;
+                    cameraPosition.y += last.y - touch1Current.y;
+                }
+            } else {
+                touch1 = false;
+
+                touch1Current.x -= cameraPosition().x;
+                touch1Current.y -= cameraPosition().y;
+                for (int i = 0; i < cells.size(); i++) {
+                    Cell c = cells.get(i);
+                    if (c.contains(touch1Current.x, touch1Current.y) && touch1MaxDistance <= movement) {
+                        touchACell(c);
+                        break;
+                    }
                 }
             }
-            // }
+        }
+    }
+
+    private void touchACell(Cell cell) {
+        selected = cell;
+    }
+
+    private boolean touch1;
+    private float touch1MaxDistance;
+    private Vector2 touch1Start;
+    private Vector2 touch1Current;
+
+    private boolean touch2;
+
+    private void draw() {
+        Color color = game.batch().getColor();
+        SpriteBatch batch = game.batch();
+
+        // Cells
+        for (int i = 0; i < cells.size(); i++)
+            cells.get(i).render(this, batch);
+
+        batch.setColor(color.r, color.g, color.b, color.a);
+
+        if (selected != null) {
+            float adjust = selected.getRadius() * 0.6f;
+            batch.draw(ring, selected.getX() - adjust - selected.getRadius() - cameraPosition().x, selected.getY()
+                    - adjust - selected.getRadius() - cameraPosition().y, 2 * (selected.getRadius() + adjust),
+                    2 * (selected.getRadius() + adjust));
+
+            String v1 = (int) (selected.getEnergy() / 10) + " / " + (int) (selected.getArea() / 10);
+            TextBounds tb = font.getBounds(v1);
+            font.draw(game.batch(), v1, selected.getX() - tb.width / 2 - cameraPosition().x, selected.getY()
+                    + tb.height / 2 - cameraPosition().y);
         }
     }
 

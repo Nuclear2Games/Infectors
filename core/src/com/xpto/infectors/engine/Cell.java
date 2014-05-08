@@ -35,14 +35,16 @@ public class Cell extends Circle {
         setTeam(_team);
     }
 
-    public void render(SpriteBatch batch) {
+    public void render(Board board, SpriteBatch batch) {
         Team t = getTeam();
         float r2 = getRadius() * 2;
         float er2 = energyRadius * 2;
 
         batch.setColor(t.getR(), t.getG(), t.getB(), t.getA());
-        batch.draw(img, getX() - getRadius(), getY() - getRadius(), r2, r2);
-        batch.draw(img, getX() - energyRadius, getY() - energyRadius, er2, er2);
+        batch.draw(img, getX() - getRadius() - board.cameraPosition().x, getY() - getRadius()
+                - board.cameraPosition().y, r2, r2);
+        batch.draw(img, getX() - energyRadius - board.cameraPosition().x,
+                getY() - energyRadius - board.cameraPosition().y, er2, er2);
     }
 
     @Override
