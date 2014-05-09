@@ -143,9 +143,19 @@ public abstract class Circle {
         if (Math.abs(toMove.x) < 0.05f)
             toMove.x = 0;
 
+        if (position.x - getRadius() < 0)
+            toMove.x += 0.25f;
+        else if (position.x + getRadius() > Board.max_size)
+            toMove.x -= 0.25f;
+
         toMove.y /= 2f;
         if (Math.abs(toMove.y) < 0.05f)
             toMove.y = 0;
+
+        if (position.y - getRadius() < 0)
+            toMove.y += 0.25f;
+        else if (position.y + getRadius() > Board.max_size)
+            toMove.y -= 0.25f;
     }
 
     public static Vector2 direction(Circle _circle1, Circle _circle2) {

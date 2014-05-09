@@ -17,6 +17,8 @@ import com.badlogic.gdx.math.Vector3;
 import com.xpto.infectors.Global;
 
 public class Board extends ScreenAdapter {
+    public static int max_size = 3000;
+
     private static float collision = 10f;
     private static float movement = 10f;
 
@@ -28,6 +30,11 @@ public class Board extends ScreenAdapter {
     private Cell selected;
     private Texture ring;
     private BitmapFont font;
+
+    // private float zoom = 1;
+    // public float zoom() {
+    // return zoom;
+    // }
 
     private Vector2 cameraPosition;
 
@@ -86,8 +93,9 @@ public class Board extends ScreenAdapter {
         // Load scenario
         cameraPosition = new Vector2();
 
-        for (int i = 0; i < 15; i++) {
-            float rad = new Random().nextFloat() * (Cell.MAX_RADIUS - Cell.MIN_RADIUS) + Cell.MIN_RADIUS;
+        Random rand = new Random();
+        for (int i = 0; i < 50; i++) {
+            float rad = rand.nextFloat() * (Cell.MAX_RADIUS - Cell.MIN_RADIUS) + Cell.MIN_RADIUS;
 
             // Rnd teams
             Team t = null;
@@ -103,8 +111,8 @@ public class Board extends ScreenAdapter {
                 break;
             }
 
-            cells.add(getCellFromPool(t, new Vector2(new Random().nextFloat() * Global.WIDTH, new Random().nextFloat()
-                    * Global.HEIGHT), rad, new Random().nextFloat() * rad));
+            cells.add(getCellFromPool(t, new Vector2(rand.nextFloat() * max_size, rand.nextFloat() * max_size), rad,
+                    rand.nextFloat() * rad));
         }
     }
 
@@ -185,28 +193,55 @@ public class Board extends ScreenAdapter {
 
         // User interactions
         if (!touch1) {
-            if (Gdx.input.isTouched(0)) {
-                Vector3 touch = new Vector3();
-                touch.x = Gdx.input.getX();
-                touch.y = Gdx.input.getY();
-                game.camera().unproject(touch);
+            if (Gdx.input.isTouched()) {
+                Vector3 t = new Vector3();
+                t.x = Gdx.input.getX();
+                t.y = Gdx.input.getY();
+                game.camera().unproject(t);
 
                 touch1 = true;
                 touch1MaxDistance = 0;
-                touch1Start = new Vector2(touch.x, touch.y);
+                touch1Start = new Vector2(t.x, t.y);
                 touch1Current = touch1Start;
             }
         } else {
-            if (Gdx.input.isTouched(0)) {
-                Vector3 touch = new Vector3();
-                touch.x = Gdx.input.getX();
-                touch.y = Gdx.input.getY();
-                game.camera().unproject(touch);
+            if (Gdx.input.isTouched(1) && Gdx.input.isTouched(0)) {
+                Vector2 last1 = new Vector2(touch1Current);
+                Vector2 last2 = null;
+                if (touch2Current != null)
+                    touch2Current = new Vector2(touch2Current);
+
+                Vector3 t1 = new Vector3();
+                t1.x = Gdx.input.getX(0);
+                t1.y = Gdx.input.getY(0);
+                game.camera().unproject(t1);
+
+                Vector3 t2 = new Vector3();
+                t2.x = Gdx.input.getX(1);
+                t2.y = Gdx.input.getY(1);
+                game.camera().unproject(t2);
+
+                touch1Current = new Vector2(t1.x, t1.y);
+                touch2Current = new Vector2(t2.x, t2.y);
+                touch2 = true;
+
+                if (last2 == null)
+                    last2 = touch2Current;
+
+                float d = touch1Current.dst(touch2Current) - last1.dst(last2);
+
+                // TODO: zoom
+                // zoom += d / 200f;
+            } else if (Gdx.input.isTouched()) {
+                Vector3 t = new Vector3();
+                t.x = Gdx.input.getX();
+                t.y = Gdx.input.getY();
+                game.camera().unproject(t);
 
                 Vector2 last = new Vector2(touch1Current);
 
                 touch1 = true;
-                touch1Current = new Vector2(touch.x, touch.y);
+                touch1Current = new Vector2(t.x, t.y);
 
                 float d = touch1Start.dst(touch1Current);
                 if (d > touch1MaxDistance)
@@ -216,11 +251,21 @@ public class Board extends ScreenAdapter {
                     cameraPosition.x += last.x - touch1Current.x;
                     cameraPosition.y += last.y - touch1Current.y;
                 }
+
+                if (cameraPosition.x < 0)
+                    cameraPosition.x = 0;
+                else if (cameraPosition.x + Global.WIDTH > max_size)
+                    cameraPosition.x = max_size - Global.WIDTH;
+
+                if (cameraPosition.y < 0)
+                    cameraPosition.y = 0;
+                else if (cameraPosition.y + Global.HEIGHT > max_size)
+                    cameraPosition.y = max_size - Global.HEIGHT;
             } else {
                 touch1 = false;
 
-                touch1Current.x -= cameraPosition().x;
-                touch1Current.y -= cameraPosition().y;
+                touch1Current.x = touch1Current.x - cameraPosition().x;
+                touch1Current.y = touch1Current.y - cameraPosition().y;
                 for (int i = 0; i < cells.size(); i++) {
                     Cell c = cells.get(i);
                     if (c.contains(touch1Current.x, touch1Current.y) && touch1MaxDistance <= movement) {
@@ -242,6 +287,7 @@ public class Board extends ScreenAdapter {
     private Vector2 touch1Current;
 
     private boolean touch2;
+    private Vector2 touch2Current;
 
     private void draw() {
         Color color = game.batch().getColor();
